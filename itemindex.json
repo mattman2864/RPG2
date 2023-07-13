@@ -1,0 +1,8 @@
+{
+    "apple":
+    {
+        "food":10,
+        "cost":50,
+        "tags":["food", "stackable"]
+    }
+}
