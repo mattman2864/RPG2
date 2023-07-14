@@ -3,14 +3,36 @@
 print("Byte To Survive 2")
 print("By mattman2864 on GitHub")
 
-
 import colored
 import json
 from tabulate import tabulate
+import gender_guesser.detector as gender
+import random
+
+with open("faces.txt") as txt:
+    lines = txt.readlines()
+    male = ''
+    female = ''
+    for i in lines[0:7]:
+        male += i
+    for i in lines[8:15]:
+        female += i
+
 
 def jsonToDict(filename: str):
     with open(filename) as f_in:
         return json.load(f_in)
+def drawbox(text: str):
+    print(text)
+    text = text.split('\n')
+    longest = 0
+    for i in text:
+        if len(i) > longest:
+            longest = len(i)
+    print('╔'+'═'*longest+'╗')
+    for i in text:
+        print('║'+f"{i}"+' '*(longest-len(i))+'║')
+    print('╚'+'═'*longest+'╝')
 
 class Item:
     def __init__(self, id: str):
@@ -41,9 +63,26 @@ class Inventory:
         return returnString
 
 class Player:
-    def __init__(self, inventory: Inventory):
+    def __init__(self, inventory: Inventory, name: str, gender: str):
         self.inv = inventory
-
+        self.name = name
+        self.gender = gender
+        if gender == "male":
+            self.photo = male
+            self.photo
+        else:
+            self.photo = female
+    def displayProfile(self):
+        photo = self.photo.split("\n")
+        statslist = [colored.bright_yellow(self.name), self.gender.title()]
+        returnlist = []
+        print()
+        for i, p in enumerate(photo):
+            if i < len(statslist):
+                returnlist.append([p, statslist[i]])
+            else:
+                returnlist.append([p, ''])
+        print(tabulate(returnlist, tablefmt="rounded_outline", stralign="center"))
 class CommandHandler:
     def __init__(self):
         self.commands = jsonToDict("commands.json")
@@ -75,10 +114,18 @@ class Game:
         for i in self.commands:
             if self.commands[i]["enabled"]:
                 commandTable.append([i, self.commands[i]["description"]])
+        print(commandTable)
         print(tabulate(commandTable, headers=["Command", "Description"])+"\n")
 
-player = Player(Inventory())
+name = input("What is your name?\n"+colored.yellow(">>> ")).title()
+d = gender.Detector()
+gender = d.get_gender(name)
+if gender in ["andy", "unknown"]:
+    while not gender in ["male", "female"]:
+        gender = input("What is your gender? (\"male\" or \"female\")\n"+colored.yellow(">>> ")).lower()
+player = Player(Inventory(), name, gender)
 game = Game(player, CommandHandler())
+player.displayProfile()
 while game.isRunning:
     cmd = input(colored.yellow(">>> ")).split()
     game.takeCommand(cmd)
